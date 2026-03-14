@@ -1,0 +1,41 @@
+# ─── Datos CSV (no subir datasets) ───────────────────────────────────────────
+data/
+*.csv
+
+# ─── PyCharm / JetBrains ─────────────────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# ─── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ─── Entornos virtuales ───────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+.env
+
+# ─── Jupyter Notebooks ───────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# ─── Outputs generados ───────────────────────────────────────────────────────
+*.html
+output/
+*.png
+*.jpg
+
+# ─── Sistema operativo ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
