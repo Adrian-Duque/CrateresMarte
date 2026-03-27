@@ -156,20 +156,35 @@ def panel_resumen(
         axes[0, 0].set_title('Distribución de diámetros')
         axes[0, 0].set_xlabel('Diámetro (km)')
 
-        axes[0, 1].hist(df['DEPTH_RIMFLOOR_TOPOG'].dropna(), bins=50, color='sandybrown', edgecolor='black')
-        axes[0, 1].set_title('Distribución de profundidades')
-        axes[0, 1].set_xlabel('Profundidad (km)')
+        if df['DEPTH_RIMFLOOR_TOPOG'].notna().any():
+            axes[0, 1].hist(df['DEPTH_RIMFLOOR_TOPOG'].dropna(), bins=50, color='sandybrown', edgecolor='black')
+            axes[0, 1].set_title('Distribución de profundidades')
+            axes[0, 1].set_xlabel('Profundidad (km)')
+        else:
+            axes[0, 1].text(0.5, 0.5, 'Profundidad\nno disponible', ha='center', va='center',
+                            fontsize=14, color='gray', transform=axes[0, 1].transAxes)
+            axes[0, 1].set_title('Distribución de profundidades')
 
-        axes[1, 0].scatter(df['log_diam'], df['log_depth'], s=2, alpha=0.3, color='firebrick')
-        axes[1, 0].set_title('log(diámetro) vs log(profundidad)')
-        axes[1, 0].set_xlabel('log_diam')
-        axes[1, 0].set_ylabel('log_depth')
+        if df['log_depth'].notna().any():
+            axes[1, 0].scatter(df['log_diam'], df['log_depth'], s=2, alpha=0.3, color='firebrick')
+            axes[1, 0].set_title('log(diámetro) vs log(profundidad)')
+            axes[1, 0].set_xlabel('log_diam')
+            axes[1, 0].set_ylabel('log_depth')
+        else:
+            axes[1, 0].text(0.5, 0.5, 'Relación diámetro–\nprofundidad no disponible', ha='center', va='center',
+                            fontsize=12, color='gray', transform=axes[1, 0].transAxes)
+            axes[1, 0].set_title('log(diámetro) vs log(profundidad)')
 
-        capas = df['NUMBER_LAYERS'].value_counts().sort_index()
-        axes[1, 1].bar(capas.index.astype(str), capas.values, color='peru', edgecolor='black')
-        axes[1, 1].set_title('Distribución de capas geológicas')
-        axes[1, 1].set_xlabel('Número de capas')
-        axes[1, 1].set_ylabel('Frecuencia')
+        if df['NUMBER_LAYERS'].notna().any():
+            capas = df['NUMBER_LAYERS'].dropna().value_counts().sort_index()
+            axes[1, 1].bar(capas.index.astype(str), capas.values, color='peru', edgecolor='black')
+            axes[1, 1].set_title('Distribución de capas geológicas')
+            axes[1, 1].set_xlabel('Número de capas')
+            axes[1, 1].set_ylabel('Frecuencia')
+        else:
+            axes[1, 1].text(0.5, 0.5, 'Capas geológicas\nno disponibles', ha='center', va='center',
+                            fontsize=14, color='gray', transform=axes[1, 1].transAxes)
+            axes[1, 1].set_title('Distribución de capas geológicas')
 
     for ax in axes.flat:
         ax.grid(linestyle='--', alpha=0.4)

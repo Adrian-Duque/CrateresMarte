@@ -34,6 +34,16 @@ RADIO_MIN     = 2       # Radio mínimo del marcador en píxeles
 DIVISOR_RADIO = 50      # Divisor para escalar el diámetro al radio visual
 OPACIDAD      = 0.6
 
+# Tiles planetarios (OpenPlanetaryMap / NASA)
+TILE_LUNA = (
+    'https://s3.amazonaws.com/opmbuilder/301_moon/tiles/w/hillshaded-albedo/{z}/{x}/{y}.png',
+    'LOLA/USGS'
+)
+TILE_MARTE = (
+    'https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-mars-basemap-v0-1/all/{z}/{x}/{y}.png',
+    'OpenPlanetaryMap'
+)
+
 
 def construir_mapa_luna(df: pd.DataFrame, max_crateres: int = 500) -> folium.Map:
     """
@@ -54,10 +64,18 @@ def construir_mapa_luna(df: pd.DataFrame, max_crateres: int = 500) -> folium.Map
     mapa = folium.Map(
         location=[0, 0],
         zoom_start=2,
-        tiles='CartoDB positron',
+        tiles=None,
     )
+    # Tile de la Luna (OpenPlanetaryMap)
+    tile_url, tile_attr = TILE_LUNA
+    folium.TileLayer(
+        tiles=tile_url,
+        attr=tile_attr,
+        name='Superficie lunar',
+    ).add_to(mapa)
 
-    muestra = df.head(max_crateres)
+    # Normalizar longitudes de [0,360) a [-180,180) para Folium
+    muestra = _normalizar_longitudes(df.head(max_crateres), ['LON_CIRC_IMG'])
     total   = len(muestra)
 
     for i, (_, row) in enumerate(muestra.iterrows()):
@@ -98,17 +116,26 @@ def construir_mapa_marte(df: pd.DataFrame, max_crateres: int = 500) -> folium.Ma
     mapa = folium.Map(
         location=[0, 0],
         zoom_start=2,
-        tiles='CartoDB positron',
+        tiles=None,
     )
+    # Tile de Marte (OpenPlanetaryMap)
+    tile_url, tile_attr = TILE_MARTE
+    folium.TileLayer(
+        tiles=tile_url,
+        attr=tile_attr,
+        name='Superficie marciana',
+    ).add_to(mapa)
 
     # Leyenda de colores
     _agregar_leyenda_marte(mapa)
 
-    muestra = df.head(max_crateres)
+    # Normalizar longitudes de [0,360) a [-180,180) para Folium
+    muestra = _normalizar_longitudes(df.head(max_crateres), ['LONGITUDE_CIRCLE_IMAGE'])
 
     for _, row in muestra.iterrows():
         radio      = max(RADIO_MIN, row['DIAM_CIRCLE_IMAGE'] / DIVISOR_RADIO)
-        tiene_capas = int(row.get('NUMBER_LAYERS', 0)) > 0
+        n_capas    = row.get('NUMBER_LAYERS', 0)
+        tiene_capas = pd.notna(n_capas) and n_capas > 0
         color      = '#cc3300' if tiene_capas else '#0055aa'
         popup_html = _popup_marte(row)
 
@@ -152,8 +179,17 @@ def exportar_mapas(mapa_luna: folium.Map, mapa_marte: folium.Map,
 
 
 # ---------------------------------------------------------------------------
-# Funciones privadas de generación de HTML para popups
+# Funciones privadas auxiliares
 # ---------------------------------------------------------------------------
+
+def _normalizar_longitudes(df: pd.DataFrame, cols_lon: list) -> pd.DataFrame:
+    """Convierte longitudes de rango [0, 360) a [-180, 180) para Folium/Leaflet."""
+    df = df.copy()
+    for col in cols_lon:
+        if col in df.columns:
+            mask = df[col] > 180
+            df.loc[mask, col] = df.loc[mask, col] - 360
+    return df
 
 def _popup_luna(row: pd.Series) -> str:
     nombre = row.get('CRATER_NAME', row.get('NAME', 'Sin nombre'))
@@ -172,6 +208,8 @@ def _popup_luna(row: pd.Series) -> str:
 
 def _popup_marte(row: pd.Series) -> str:
     nombre = row.get('CRATER_NAME', row.get('NAME', 'Sin nombre'))
+    profundidad = f"{row['DEPTH_RIMFLOOR_TOPOG']:.2f} km" if pd.notna(row.get('DEPTH_RIMFLOOR_TOPOG')) else 'N/D'
+    n_capas = int(row['NUMBER_LAYERS']) if pd.notna(row.get('NUMBER_LAYERS')) else 'N/D'
     return f"""
     <div style="font-family: Arial, sans-serif; font-size: 12px; min-width: 220px;">
         <b style="font-size:14px;">🔴 Cráter marciano</b><br><hr style="margin:4px 0">
@@ -179,8 +217,8 @@ def _popup_marte(row: pd.Series) -> str:
         <b>Latitud:</b>  {row['LATITUDE_CIRCLE_IMAGE']:.4f}°<br>
         <b>Longitud:</b> {row['LONGITUDE_CIRCLE_IMAGE']:.4f}°<br>
         <b>Diámetro:</b>    {row['DIAM_CIRCLE_IMAGE']:.2f} km<br>
-        <b>Profundidad:</b> {row['DEPTH_RIMFLOOR_TOPOG']:.2f} km<br>
-        <b>Capas geológicas:</b> {int(row['NUMBER_LAYERS'])}<br>
+        <b>Profundidad:</b> {profundidad}<br>
+        <b>Capas geológicas:</b> {n_capas}<br>
         <b>Error localización:</b> {row.get('ERR_CIRCLE_IMAGE', 'N/D')}
     </div>
     """

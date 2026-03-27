@@ -1,41 +1,47 @@
-# ─── Datos CSV (no subir datasets) ───────────────────────────────────────────
-data/
-*.csv
-
-# ─── PyCharm / JetBrains ─────────────────────────────────────────────────────
-.idea/
-*.iml
-*.iws
-*.ipr
-
-# ─── Python ──────────────────────────────────────────────────────────────────
+# Python
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
 *.pyd
-.Python
 *.egg-info/
+*.egg
 dist/
 build/
-*.egg
+*.whl
 
-# ─── Entornos virtuales ───────────────────────────────────────────────────────
-venv/
-.venv/
-env/
+# Entorno y credenciales
 .env
+.env.*
+*.env
+config.local.*
+secrets.*
+credentials.*
 
-# ─── Jupyter Notebooks ───────────────────────────────────────────────────────
+# Bases de datos locales
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+
+# Jupyter
 .ipynb_checkpoints/
-*/.ipynb_checkpoints/
 
-# ─── Outputs generados ───────────────────────────────────────────────────────
-*.html
-output/
-*.png
-*.jpg
+# IDEs y editores
+.idea/
+.vscode/
+*.suo
+*.swp
+*.swo
 
-# ─── Sistema operativo ───────────────────────────────────────────────────────
+# Sistema operativo
 .DS_Store
 Thumbs.db
-desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Archivos grandes y comprimidos
+*.zip
+*.tar.gz
+*.rar
