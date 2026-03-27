@@ -29,12 +29,19 @@ COLUMNAS_LUNA = [
 ]
 
 COLUMNAS_MARTE = [
-    'LATITUDE_CIRCLE_IMAGE',
-    'LONGITUDE_CIRCLE_IMAGE',
-    'DIAM_CIRCLE_IMAGE',
-    'DEPTH_RIMFLOOR_TOPOG',
-    'NUMBER_LAYERS',
+    'LAT_CIRC_IMG',
+    'LON_CIRC_IMG',
+    'DIAM_CIRC_IMG',
+    'LAY_NUMBER',
 ]
+
+# Mapeo de nombres abreviados (CSV real) → nombres largos (esperados por el resto del código)
+MAPEO_MARTE = {
+    'LAT_CIRC_IMG':    'LATITUDE_CIRCLE_IMAGE',
+    'LON_CIRC_IMG':    'LONGITUDE_CIRCLE_IMAGE',
+    'DIAM_CIRC_IMG':   'DIAM_CIRCLE_IMAGE',
+    'LAY_NUMBER':      'NUMBER_LAYERS',
+}
 
 PLANETAS_VALIDOS = ('luna', 'marte')
 
@@ -76,6 +83,17 @@ def cargar_dataset(ruta_csv: str, planeta: str) -> pd.DataFrame:
             f"El dataset no contiene las columnas requeridas: {columnas_faltantes}\n"
             f"Columnas encontradas: {list(df.columns)}"
         )
+
+    # Renombrar columnas de Marte a los nombres esperados por el resto del código
+    if planeta == 'marte':
+        df.rename(columns=MAPEO_MARTE, inplace=True)
+        # Crear columnas que no existen en el CSV como NaN
+        if 'DEPTH_RIMFLOOR_TOPOG' not in df.columns:
+            df['DEPTH_RIMFLOOR_TOPOG'] = pd.NA
+            print("[AVISO] Columna 'DEPTH_RIMFLOOR_TOPOG' no encontrada en el CSV. "
+                  "Se creó vacía. El análisis de profundidad se omitirá.")
+        if 'ERR_CIRCLE_IMAGE' not in df.columns:
+            df['ERR_CIRCLE_IMAGE'] = pd.NA
 
     print(
         f"[OK] Dataset '{planeta}' cargado desde '{ruta_csv}'.\n"

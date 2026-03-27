@@ -141,10 +141,15 @@ def matriz_correlacion(
 # ---------------------------------------------------------------------------
 
 def _validar_columnas(df: pd.DataFrame, variables: list) -> None:
-    """Lanza ValueError si alguna columna no existe en el DataFrame."""
+    """Lanza ValueError si alguna columna no existe en el DataFrame.
+    Advierte si alguna columna existe pero está completamente vacía (NaN)."""
     faltantes = [v for v in variables if v not in df.columns]
     if faltantes:
         raise ValueError(
             f"Las siguientes columnas no existen en el DataFrame: {faltantes}\n"
             f"Columnas disponibles: {list(df.columns)}"
         )
+    vacias = [v for v in variables if df[v].isna().all()]
+    if vacias:
+        print(f"[AVISO] Columnas sin datos (todos NaN): {vacias}. "
+              f"Los resultados para estas variables estarán vacíos.")
